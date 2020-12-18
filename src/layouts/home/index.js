@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, { Component } from 'react';
 import {
   Text,
   View,
@@ -33,7 +33,7 @@ class TopBar extends Component {
     clearInterval(this.state.isMinutes);
   }
   render() {
-    const {isMinutes} = this.state;
+    const { isMinutes } = this.state;
     return (
       <View style={styles.topBar}>
         <View
@@ -50,11 +50,11 @@ class TopBar extends Component {
               borderRightWidth: 1,
               borderColor: 'white',
             }}>
-            <Text style={{fontSize: 30, color: 'white'}}>
+            <Text style={{ fontSize: 30, color: 'white' }}>
               {this.props.km} Km
             </Text>
           </View>
-          <View style={{flex: 1, borderLeftWidth: 1, borderColor: 'white'}}>
+          <View style={{ flex: 1, borderLeftWidth: 1, borderColor: 'white' }}>
             <Text>{isMinutes}</Text>
           </View>
         </View>
@@ -73,7 +73,7 @@ class BottomBar extends Component {
   }
 
   render() {
-    const {isStart} = this.state;
+    const { isStart } = this.state;
     console.log(isStart);
     return (
       <View style={styles.bottomBar}>
@@ -84,7 +84,7 @@ class BottomBar extends Component {
             flexDirection: 'row',
           }}>
           <View
-            style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+            style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
             <TouchableOpacity
               onPress={() => {
                 this.setState({
@@ -101,7 +101,7 @@ class BottomBar extends Component {
                 justifyContent: 'center',
                 alignItems: 'center',
               }}>
-              <Text style={{color: 'white'}}>
+              <Text style={{ color: 'white' }}>
                 {isStart == true ? 'Start' : 'Stop'}
               </Text>
             </TouchableOpacity>
@@ -119,12 +119,12 @@ class HomeLayout extends Component {
     );
     super(props);
     this.startPoint = [106.74840614673072, -6.234813322985887];
-    this.finishedPoint = [106.74900190353225, -6.232977323857476];
+    this.finishedPoint = [106.70264345, -6.16676574];
     this.state = {
       isCount: 0,
       isStart: true,
       isGranted: false,
-      isAltitude: 0,
+      isLongtitude: 0,
       isLatitude: 0,
       isStartPoint: [],
       route: {
@@ -162,9 +162,13 @@ class HomeLayout extends Component {
     console.log('did mount');
     this.isSetLocation();
   }
+  
+  getStartPoint = async () => {
+    return this.state.isStartPoint;
+  }
 
   isSetLocation = () => {
-    const {isGranted} = this.state;
+    const { isGranted } = this.state;
     if (isGranted) {
       return Geolocation.getCurrentPosition(
         (position) => {
@@ -177,7 +181,7 @@ class HomeLayout extends Component {
         (error) => {
           console.log(error.code, error.message);
         },
-        {enableHighAccuracy: true, timeout: 15000, maximumAge: 10000},
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 },
       );
     }
   };
@@ -192,7 +196,7 @@ class HomeLayout extends Component {
     var radius = (lat) =>
       sqr(
         (sq(a * a * cos(lat)) + sq(b * b * sin(lat))) /
-          (sq(a * cos(lat)) + sq(b * sin(lat))),
+        (sq(a * cos(lat)) + sq(b * sin(lat))),
       );
 
     lat1 = (lat1 * Math.PI) / 180;
@@ -226,8 +230,8 @@ class HomeLayout extends Component {
   //106.74840614673072, -6.234813322985887
   //106.74900190353225, -6.232977323857476
   render() {
-    const {isStartPoint} = this.state;
-    // console.log(isStartPoint);
+    const { isLongtitude, isLatitude, isStartPoint } = this.state;
+    console.log(isStartPoint);
     const setDistanceKm = this.getDistanceBetween(
       -6.234813322985887,
       106.74840614673072,
@@ -243,33 +247,21 @@ class HomeLayout extends Component {
         />
         <View style={styles.wrapMap}>
           <MapboxGL.MapView
-            ref={c => console.log(c)}
+            styleURL={MapboxGL.StyleURL.Street}
+            // ref={c => console.log(c)}
             zoomEnabled={true}
-            style={{flex: 1}}
-            onDidFinishLoadingMap={(e) => console.log(e)}
-            centerCoordinate={isStartPoint}
+            style={{ flex: 1 }}
+            // onDidFinishLoadingMap={(e) => console.log(e)}
+            centerCoordinate={[isLongtitude, isLatitude]}
             logoEnabled={false}>
-            {/* Dynamic Location */}
-            {/* <MapboxGL.UserLocation
-              renderMode="normal"
-              visible={false}
-              onUpdate={(location) => {
-                const currentCoords = [
-                  location.coords.longitude,
-                  location.coords.latitude,
-                ];
-                console.log(currentCoords); // current location is here
-                // this.setState({
-                //   initialCoords: currentCoords,
-                // });
-              }}
-            /> */}
-            {/* Current Camera */}
-            <MapboxGL.Camera zoomLevel={5} centerCoordinate={isStartPoint} />
-            {/* Current Position */}
+            {/* camera current user */}
+            <MapboxGL.Camera zoomLevel={5} centerCoordinate={[isLongtitude, isLatitude]} animationMode={'flyTo'}
+              animationDuration={0}>
+            </MapboxGL.Camera>
+             {/* draw point Current Position */}
             <MapboxGL.PointAnnotation
               id="userCurrentPoint"
-              coordinate={isStartPoint}>
+              coordinate={[isLongtitude, isLatitude]}>
               <View
                 style={{
                   height: 20,
@@ -282,7 +274,7 @@ class HomeLayout extends Component {
               />
             </MapboxGL.PointAnnotation>
 
-            {/* End Point Location */}
+            {/* draw End Point Location */}
             <MapboxGL.PointAnnotation
               key="key2"
               id="id2"
@@ -298,7 +290,7 @@ class HomeLayout extends Component {
                 }}
               />
             </MapboxGL.PointAnnotation>
-            {/* Line Start to end */}
+            {/*draw  Line Start to end */}
             <MapboxGL.ShapeSource id="line1" shape={this.state.route}>
               <MapboxGL.LineLayer
                 id="linelayer1"
