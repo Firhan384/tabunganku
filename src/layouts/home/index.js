@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, {Component, useState} from 'react';
 import {
   Text,
   View,
@@ -9,108 +9,98 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
 } from 'react-native';
+import {
+  Actions
+} from 'react-native-router-flux';
 import MapboxGL from '@react-native-mapbox-gl/maps';
 import Geolocation from '@react-native-community/geolocation';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import SessionHelper from '../../core/helpers/session_helpers';
 
-class TopBar extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      isMinutes: 0,
-      isSecond: 0,
-    };
-  }
-  async componentDidMount() {
-    // setInterval(() => {
-    //   this.setState((prevMinute) => ({
-    //     isMinutes: prevMinute.isMinutes + 1,
-    //   }));
-    // }, 1000);
-  }
-  async componentWillUnmount() {
-    clearInterval(this.state.isMinutes);
-  }
-  render() {
-    const { isMinutes } = this.state;
-    return (
-      <View style={styles.topBar}>
-        <View
-          style={{
-            flex: 1,
-            justifyContent: 'space-evenly',
-            flexDirection: 'row',
-          }}>
-          <View
+const BottomBar = () => {
+  const [start, setStart] = useState(false);
+  return (
+    <View style={styles.bottomBar}>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'space-evenly',
+          flexDirection: 'row',
+        }}>
+        <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', flexDirection: 'row'}}>
+          <TouchableOpacity
+            onPress={() => {
+              setStart((prevStart) => !prevStart);
+            }}
             style={{
-              flex: 1,
+              height: 80,
+              width: 80,
+              backgroundColor: 'tomato',
+              borderRadius: 50,
+              borderColor: '#fff',
+              borderWidth: 3,
               justifyContent: 'center',
               alignItems: 'center',
-              borderRightWidth: 1,
-              borderColor: 'white',
             }}>
-            <Text style={{ fontSize: 30, color: 'white' }}>
-              {this.props.km} Km
-            </Text>
-          </View>
-          <View style={{ flex: 1, borderLeftWidth: 1, borderColor: 'white' }}>
-            <Text>{isMinutes}</Text>
-          </View>
+            <Text style={{color: 'white'}}>{!start ? 'Start' : 'Stop'}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => {
+              Actions.screen()
+            }}
+            style={{
+              height: 80,
+              width: 80,
+              backgroundColor: 'tomato',
+              borderRadius: 50,
+              borderColor: '#fff',
+              borderWidth: 3,
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}>
+            <Text style={{color: 'white'}}>Show Data</Text>
+          </TouchableOpacity>
         </View>
       </View>
-    );
-  }
-}
+    </View>
+  );
+};
 
-class BottomBar extends Component {
-  constructor(props) {
-    super(props);
-    this._helperSession = new SessionHelper();
-    this.state = {
-      isStart: true,
-    };
-  }
-
-  render() {
-    const { isStart } = this.state;
-    console.log(isStart);
-    return (
-      <View style={styles.bottomBar}>
+const TopBar = (props) => {
+  return (
+    <View style={styles.topBar}>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'space-evenly',
+          flexDirection: 'row',
+        }}>
         <View
           style={{
             flex: 1,
-            justifyContent: 'space-evenly',
-            flexDirection: 'row',
+            justifyContent: 'center',
+            alignItems: 'center',
+            borderRightWidth: 1,
+            borderColor: 'white',
           }}>
-          <View
-            style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-            <TouchableOpacity
-              onPress={() => {
-                this.setState({
-                  isStart: !isStart,
-                });
-              }}
-              style={{
-                height: 80,
-                width: 80,
-                backgroundColor: 'tomato',
-                borderRadius: 50,
-                borderColor: '#fff',
-                borderWidth: 3,
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}>
-              <Text style={{ color: 'white' }}>
-                {isStart == true ? 'Start' : 'Stop'}
-              </Text>
-            </TouchableOpacity>
-          </View>
+          <Text style={{fontSize: 30, color: 'white'}}>{props.km} Km</Text>
+        </View>
+        <View
+          style={{
+            flex: 1,
+            borderLeftWidth: 1,
+            borderColor: 'white',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+          <Text style={{fontSize: 30, color: 'white'}}>
+            {/* {this.props.isStart} */}
+          </Text>
         </View>
       </View>
-    );
-  }
-}
+    </View>
+  );
+};
 
 class HomeLayout extends Component {
   constructor(props) {
@@ -121,11 +111,10 @@ class HomeLayout extends Component {
     this.startPoint = [106.74840614673072, -6.234813322985887];
     this.finishedPoint = [106.70264345, -6.16676574];
     this.state = {
-      isCount: 0,
-      isStart: true,
       isGranted: false,
       isLongtitude: 0,
       isLatitude: 0,
+      isUpdateLocation: {},
       isStartPoint: [],
       route: {
         type: 'FeatureCollection',
@@ -159,19 +148,17 @@ class HomeLayout extends Component {
     this.setState({
       isGranted: true,
     });
-    console.log('did mount');
+    console.log('componentDidMount');
     this.isSetLocation();
-  }
-  
-  getStartPoint = async () => {
-    return this.state.isStartPoint;
+    this._setNewLocation();
   }
 
-  isSetLocation = () => {
-    const { isGranted } = this.state;
+  isSetLocation = async () => {
+    const {isGranted} = this.state;
     if (isGranted) {
       return Geolocation.getCurrentPosition(
         (position) => {
+          console.log(position);
           this.setState({
             isLongtitude: position.coords.longitude,
             isLatitude: position.coords.latitude,
@@ -181,7 +168,7 @@ class HomeLayout extends Component {
         (error) => {
           console.log(error.code, error.message);
         },
-        { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 },
+        {enableHighAccuracy: true, timeout: 15000, maximumAge: 10000},
       );
     }
   };
@@ -196,7 +183,7 @@ class HomeLayout extends Component {
     var radius = (lat) =>
       sqr(
         (sq(a * a * cos(lat)) + sq(b * b * sin(lat))) /
-        (sq(a * cos(lat)) + sq(b * sin(lat))),
+          (sq(a * cos(lat)) + sq(b * sin(lat))),
       );
 
     lat1 = (lat1 * Math.PI) / 180;
@@ -216,49 +203,55 @@ class HomeLayout extends Component {
 
     return sqr(sq(x1 - x2) + sq(y1 - y2) + sq(z1 - z2));
   };
-  isCurrentLocation = () => {
-    return (
-      <View>
-        <MapboxGL.Camera
-          zoomLevel={5}
-          centerCoordinate={[isAltitude, isLatitude]}
-        />
-      </View>
-    );
+  _setNewLocation = async (newUserLocation) => {
+      this.setState({
+        isUpdateLocation: {
+          accuracy: newUserLocation.coords.accuracy,
+          altitude: newUserLocation.coords.altitude,
+          heading: newUserLocation.coords.heading,
+          latitude: newUserLocation.coords.latitude,
+          longitude: newUserLocation.coords.longitude,
+          speed: newUserLocation.coords.speed,
+        },
+      });
   };
 
   //106.74840614673072, -6.234813322985887
   //106.74900190353225, -6.232977323857476
   render() {
-    const { isLongtitude, isLatitude, isStartPoint } = this.state;
-    console.log(isStartPoint);
+    const {isLongtitude, isLatitude, isUpdateLocation} = this.state;
+    console.log(isLongtitude, isLatitude);
     const setDistanceKm = this.getDistanceBetween(
       -6.234813322985887,
       106.74840614673072,
       -6.232977323857476,
       106.74900190353225,
     );
-    // console.log(setDistanceKm.toFixed(2));
     return (
       <View style={styles.container}>
-        <TopBar
-          km={setDistanceKm.toFixed(2)}
-          isStartCallback={this.state.isCount}
-        />
+        <TopBar km={setDistanceKm.toFixed(2)} />
         <View style={styles.wrapMap}>
           <MapboxGL.MapView
             styleURL={MapboxGL.StyleURL.Street}
-            // ref={c => console.log(c)}
             zoomEnabled={true}
-            style={{ flex: 1 }}
-            // onDidFinishLoadingMap={(e) => console.log(e)}
+            style={{flex: 1}}
             centerCoordinate={[isLongtitude, isLatitude]}
             logoEnabled={false}>
+            {/*  */}
+            {/* <MapboxGL.UserLocation
+              animated={true}
+              visible={true}
+              onUpdate={(newUserLocation) => console.log(newUserLocation)}
+            /> */}
+
             {/* camera current user */}
-            <MapboxGL.Camera zoomLevel={5} centerCoordinate={[isLongtitude, isLatitude]} animationMode={'flyTo'}
-              animationDuration={0}>
-            </MapboxGL.Camera>
-             {/* draw point Current Position */}
+            <MapboxGL.Camera
+              zoomLevel={5}
+              centerCoordinate={[isLongtitude, isLatitude]}
+              animationMode={'flyTo'}
+              animationDuration={100}></MapboxGL.Camera>
+
+            {/* draw point Current Position */}
             <MapboxGL.PointAnnotation
               id="userCurrentPoint"
               coordinate={[isLongtitude, isLatitude]}>

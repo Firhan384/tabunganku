@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 class SessionHelper {
 
     _getItems = async (key) => {
-        return await AsyncStorage.getItem(key);
+        return await AsyncStorage.getItem(key).then((result) => {return result}).catch((error)=>{console.log(error)});
     }
     _setItems = async (key,value) => {
         return await AsyncStorage.setItem(key,value);

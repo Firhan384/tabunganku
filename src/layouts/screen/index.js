@@ -1,29 +1,14 @@
-import React, {Component} from 'react';
-import {ActivityIndicator, View, Text} from 'react-native';
+import React, { Component } from 'react'
+import { Text, View } from 'react-native'
 
 class ScreenLayout extends Component {
-  state = {
-      isLoading : true
-  }
-  componentDidMount() {
-    setTimeout(()=> {
-        this.setState({
-            isLoading: false
-        })
-    },300)
-  }
-  render() {
-    if(this.state.isLoading) {
+    render() {
         return (
-            <ActivityIndicator size="large" color="#00ff00" />
+            <View>
+                <Text> ScreenLayout </Text>
+            </View>
         )
     }
-    return (
-        <View>
-            <Text>Screen</Text>
-        </View>
-    )
-  }
 }
 
-export default ScreenLayout;
+export default ScreenLayout

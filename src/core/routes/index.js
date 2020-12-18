@@ -24,11 +24,12 @@ class Routes extends Component {
             component={HomeLayout}
             title="Home"
             hideNavBar={true}
+            initial
           />
           <Scene
             key="screen"
             component={ScreenLayout}
-            hideNavBar={true}
+            hideNavBar={false}
           />
         </Stack>
       </Router>
