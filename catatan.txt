@@ -1,0 +1,28 @@
+{/* draw End Point Location */}
+              <MapboxGL.PointAnnotation
+                key="key2"
+                id="id2"
+                coordinate={this.finishedPoint}>
+                <View
+                  style={{
+                    height: 20,
+                    width: 20,
+                    backgroundColor: 'red',
+                    borderRadius: 50,
+                    borderColor: '#fff',
+                    borderWidth: 3,
+                  }}
+                />
+              </MapboxGL.PointAnnotation>
+              {/*draw  Line Start to end */}
+              <MapboxGL.ShapeSource id="line1" shape={this.state.route}>
+                <MapboxGL.LineLayer
+                  id="linelayer1"
+                  style={{
+                    lineColor: 'red',
+                    lineWidth: 10,
+                    lineCap: 'round',
+                  }}
+                />
+              </MapboxGL.ShapeSource>
+              
